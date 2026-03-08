@@ -1,9 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {ApiService} from './services/api.service';
-
-
-
+import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Params } from '@angular/router';
+import { finalize } from 'rxjs';
+import { SwapiItem, SwapiResponse } from './models/swapi.model';
+import { ApiService } from './services/api.service';
 
 @Component({
   selector: 'app-root',
@@ -11,31 +10,32 @@ import {ApiService} from './services/api.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-
-  searchType: string;
-  searchResult: any[];
-  isLoading: boolean;
-
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private apiService: ApiService
-  ) {}
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly apiService = inject(ApiService);
+  searchType = '';
+  searchResult: SwapiItem[] = [];
+  isLoading = false;
+  hasSearched = false;
 
   ngOnInit(): void {
-    this.activatedRoute.queryParams.subscribe(params => {
-      const {searchType, query} = params;
+    this.activatedRoute.queryParams.subscribe((params: Params) => {
+      const { searchType, query } = params;
       if (searchType && query) {
         this.isLoading = true;
+        this.hasSearched = true;
         this.searchType = searchType;
-        this.apiService.search(searchType, query).subscribe(response => {
-          this.searchResult = response.result;
-          this.isLoading = false;
-        });
+        this.apiService
+          .search(searchType, query)
+          .pipe(finalize(() => (this.isLoading = false)))
+          .subscribe({
+            next: (response: SwapiResponse) => (this.searchResult = response.result),
+            error: () => (this.searchResult = [])
+          });
       }
     });
   }
 
-  isNotFound(searchResult: any[], isLoading: boolean) {
-    return searchResult && !searchResult.length && !isLoading;
+  get showNotFound(): boolean {
+    return this.hasSearched && !this.isLoading && this.searchResult.length === 0;
   }
 }

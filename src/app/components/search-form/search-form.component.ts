@@ -1,46 +1,43 @@
-import { Component, OnInit } from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
 @Component({
   selector: 'app-search-form',
-  templateUrl: './search-form.component.html',
+  templateUrl: './search-form.component.html'
 })
 export class SearchFormComponent implements OnInit {
-
-  searchForm: FormGroup;
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly router = inject(Router);
+  @Input() isLoading = false;
+  searchForm!: FormGroup;
   defaultSearchType = 'people';
-
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private formBuilder: FormBuilder,
-    private router: Router
-  ) { }
 
   ngOnInit(): void {
     this.searchForm = this.formBuilder.group({
-      searchType: [ this.defaultSearchType ],
-      query: [ '', [Validators.required] ],
+      searchType: [this.defaultSearchType],
+      query: ['', [Validators.required]]
     });
 
-    this.activatedRoute.queryParams.subscribe(params => {
-      const {searchType, query}  = params;
-      this.searchForm.setValue({
+    this.activatedRoute.queryParams.subscribe((params: Params) => {
+      const { searchType, query } = params;
+      this.searchForm.patchValue({
         searchType: searchType || this.defaultSearchType,
-        query: query || '',
+        query: query || ''
       });
     });
   }
 
   search(): void {
-    const {searchType, query} = this.searchForm.value;
     if (this.searchForm.valid) {
+      const { searchType, query } = this.searchForm.value;
       this.router.navigate([], {
         queryParams: {
           searchType,
-          query,
+          query
         },
+        queryParamsHandling: 'merge'
       });
     }
   }
