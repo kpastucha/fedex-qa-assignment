@@ -9,32 +9,22 @@ import { AppComponent } from './app.component';
 import { CharacterComponent } from './components/character/character.component';
 import { PlanetComponent } from './components/planet/planet.component';
 import { SearchFormComponent } from './components/search-form/search-form.component';
-import { CharacterProperties, PlanetProperties, SwapiItem, SwapiResponse } from './models/swapi.model';
+import { ANAKIN_MODEL_DATA, CharacterModel, LUKE_MODEL_DATA } from './models/character.model';
+import { PlanetModel, TATOOINE_MODEL_DATA } from './models/planet.model';
+import { SEARCH_TYPE_DATA, SearchType } from './models/search-type.model';
+import { SwapiItemModel, SwapiResponseModel } from './models/swapi.model';
 import { ApiService } from './services/api.service';
 
 describe('App Component Integration Tests', () => {
   let component: AppComponent;
   let fixture: ComponentFixture<AppComponent>;
   let apiServiceSpy: jasmine.SpyObj<ApiService>;
-  let queryParams$: BehaviorSubject<{ searchType: string; query: string }>;
-  const mockCharacter: CharacterProperties = {
-    name: 'Luke Skywalker',
-    gender: 'male',
-    birth_year: '19BBY',
-    eye_color: 'blue',
-    skin_color: 'fair'
-  };
-  const mockPlanet: PlanetProperties = {
-    name: 'Tatooine',
-    population: '200000',
-    climate: 'arid',
-    gravity: '1 standard'
-  };
+  let queryParams$: BehaviorSubject<{ searchType: SearchType; query: string }>;
 
   beforeEach(async () => {
     const spy = jasmine.createSpyObj('ApiService', ['search']);
     spy.search.and.returnValue(of({ result: [] }));
-    queryParams$ = new BehaviorSubject({ searchType: 'people', query: 'luke' });
+    queryParams$ = new BehaviorSubject<{ searchType: SearchType; query: string }>({ searchType: SEARCH_TYPE_DATA.PEOPLE, query: 'luke' });
     await TestBed.configureTestingModule({
       declarations: [AppComponent, CharacterComponent, PlanetComponent, SearchFormComponent],
       imports: [ReactiveFormsModule],
@@ -53,10 +43,10 @@ describe('App Component Integration Tests', () => {
 
   describe('Route and State Management', () => {
     it('Should correctly assign result to searchResult and update state flags', () => {
-      mockApiSearch([{ properties: mockCharacter } as SwapiItem]);
+      mockApiSearch([{ properties: LUKE_MODEL_DATA } as SwapiItemModel]);
       fixture.detectChanges();
-      const firstResult = component.searchResult[0].properties as CharacterProperties;
-      expect(firstResult.name).toBe('Luke Skywalker');
+      const firstResult = component.searchResult[0].properties as CharacterModel;
+      expect(firstResult.name).toBe(LUKE_MODEL_DATA.name);
       expect(component.isLoading).toBeFalse();
       expect(component.hasSearched).toBeTrue();
     });
@@ -68,19 +58,32 @@ describe('App Component Integration Tests', () => {
       expect(component.isLoading).toBeFalse();
       expect(component.showNotFound).toBeTrue();
     });
+
+    it('Should clear results and not call API when query is empty', () => {
+      component.searchResult = [{ properties: LUKE_MODEL_DATA } as SwapiItemModel];
+      component.hasSearched = true;
+      fixture.detectChanges();
+      apiServiceSpy.search.calls.reset();
+      queryParams$.next({ searchType: SEARCH_TYPE_DATA.PEOPLE, query: '' });
+      fixture.detectChanges();
+      expect(component.searchResult.length).toBe(0);
+      expect(apiServiceSpy.search).not.toHaveBeenCalled();
+      expect(component.isLoading).toBeFalse();
+      expect(component.showNotFound).toBeFalse();
+    });
   });
 
   describe('Dynamic Rendering (Templates)', () => {
     it('Should render character component when people are searched', () => {
-      mockApiSearch([{ properties: mockCharacter } as SwapiItem]);
+      mockApiSearch([{ properties: LUKE_MODEL_DATA } as SwapiItemModel]);
       fixture.detectChanges();
       expect(getChildDebugElement(CharacterComponent)).toBeTruthy();
     });
 
     it('Should render multiple character components based on API results', () => {
-      const results: SwapiItem[] = [
-        { uid: '1', properties: { name: 'Luke' } as CharacterProperties } as SwapiItem,
-        { uid: '2', properties: { name: 'Leia' } as CharacterProperties } as SwapiItem
+      const results: SwapiItemModel[] = [
+        { properties: { name: 'Luke' } as CharacterModel } as SwapiItemModel,
+        { properties: { name: 'Leia' } as CharacterModel } as SwapiItemModel
       ];
       mockApiSearch(results);
       fixture.detectChanges();
@@ -91,8 +94,8 @@ describe('App Component Integration Tests', () => {
     });
 
     it('Should render planet component and hide character component when searchType is planets', () => {
-      mockApiSearch([{ properties: mockPlanet } as SwapiItem]);
-      queryParams$.next({ searchType: 'planets', query: 'tatooine' });
+      mockApiSearch([{ properties: TATOOINE_MODEL_DATA } as SwapiItemModel]);
+      queryParams$.next({ searchType: SEARCH_TYPE_DATA.PLANETS, query: 'tatooine' });
       fixture.detectChanges();
       const planetEl = getChildDebugElement(PlanetComponent);
       expect(planetEl).not.toBeNull();
@@ -101,11 +104,11 @@ describe('App Component Integration Tests', () => {
     });
 
     it('Should render multiple planet components based on API results', () => {
-      queryParams$.next({ searchType: 'planets', query: 'a' });
-      const results: SwapiItem[] = [
-        { uid: '1', properties: { name: 'Tatooine' } as PlanetProperties } as SwapiItem,
-        { uid: '2', properties: { name: 'Alderaan' } as PlanetProperties } as SwapiItem,
-        { uid: '3', properties: { name: 'Hoth' } as PlanetProperties } as SwapiItem
+      queryParams$.next({ searchType: SEARCH_TYPE_DATA.PLANETS, query: 'a' });
+      const results: SwapiItemModel[] = [
+        { properties: { name: 'Tatooine' } as PlanetModel } as SwapiItemModel,
+        { properties: { name: 'Alderaan' } as PlanetModel } as SwapiItemModel,
+        { properties: { name: 'Hoth' } as PlanetModel } as SwapiItemModel
       ];
       mockApiSearch(results);
       fixture.detectChanges();
@@ -153,8 +156,8 @@ describe('App Component Integration Tests', () => {
       component.hasSearched = false;
       fixture.detectChanges();
       expect(fixture.debugElement.queryAll(By.css('br')).length).toBe(2);
-      component.searchType = 'people';
-      component.searchResult = [{ uid: '1', properties: mockCharacter } as SwapiItem, { uid: '2', properties: mockCharacter } as SwapiItem];
+      component.searchType = SEARCH_TYPE_DATA.PEOPLE;
+      component.searchResult = [{ properties: LUKE_MODEL_DATA } as SwapiItemModel, { properties: ANAKIN_MODEL_DATA } as SwapiItemModel];
       fixture.detectChanges();
       expect(fixture.debugElement.queryAll(By.css('br')).length).toBe(4);
     });
@@ -172,14 +175,14 @@ describe('App Component Integration Tests', () => {
 
     it('Should react to new query parameters by triggering a new search', () => {
       const searchSpy = apiServiceSpy.search;
-      queryParams$.next({ searchType: 'people', query: 'yoda' });
+      queryParams$.next({ searchType: SEARCH_TYPE_DATA.PEOPLE, query: 'yoda' });
       fixture.detectChanges();
-      expect(searchSpy).toHaveBeenCalledWith('people', 'yoda');
+      expect(searchSpy).toHaveBeenCalledWith(SEARCH_TYPE_DATA.PEOPLE, 'yoda');
     });
   });
 
-  function mockApiSearch(items: SwapiItem[]) {
-    apiServiceSpy.search.and.returnValue(of({ result: items } as SwapiResponse));
+  function mockApiSearch(items: SwapiItemModel[]) {
+    apiServiceSpy.search.and.returnValue(of({ result: items } as SwapiResponseModel));
   }
 
   function getChildDebugElement(directive: Type<unknown>) {

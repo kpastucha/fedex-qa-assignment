@@ -3,29 +3,28 @@
     <div class="col">
       <h1>The Star Wars Search</h1>
       <br />
-
       <app-search-form [isLoading]="isLoading"></app-search-form>
       <br />
-
-      <div *ngIf="isLoading">Loading...</div>
-
-      <div *ngIf="showNotFound">Not found.</div>
-
-      <div *ngIf="!isLoading">
-        <div *ngIf="searchType === 'people'">
-          <div *ngFor="let result of searchResult">
-            <app-character [character]="result.properties"></app-character>
-            <br />
-          </div>
-        </div>
-
-        <div *ngIf="searchType === 'planets'">
-          <div *ngFor="let result of searchResult">
-            <app-planet [planet]="result.properties"></app-planet>
-            <br />
-          </div>
-        </div>
+      <div *ngIf="isLoading; else resultsBlock">
+        <div>Loading...</div>
       </div>
+      <ng-template #resultsBlock>
+        <div *ngIf="showNotFound">Not found.</div>
+        <div *ngIf="!showNotFound">
+          <div *ngIf="searchType === SEARCH_TYPES.PEOPLE">
+            <div *ngFor="let result of searchResult">
+              <app-character [character]="result.properties"></app-character>
+              <br />
+            </div>
+          </div>
+          <div *ngIf="searchType === SEARCH_TYPES.PLANETS">
+            <div *ngFor="let result of searchResult">
+              <app-planet [planet]="result.properties"></app-planet>
+              <br />
+            </div>
+          </div>
+        </div>
+      </ng-template>
     </div>
   </div>
 </div>

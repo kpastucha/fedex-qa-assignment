@@ -1,18 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { CharacterProperties } from '../../models/swapi.model';
+import { CharacterModel, LUKE_MODEL_DATA } from '../../models/character.model';
 import { CharacterComponent } from './character.component';
 
 describe('Character Component Unit Tests', () => {
   let component: CharacterComponent;
   let fixture: ComponentFixture<CharacterComponent>;
-  const mockCharacter: CharacterProperties = {
-    name: 'Luke Skywalker',
-    gender: 'male',
-    birth_year: '19BBY',
-    eye_color: 'blue',
-    skin_color: 'fair'
-  };
+  const mockCharacter = LUKE_MODEL_DATA;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({ declarations: [CharacterComponent] }).compileComponents();
@@ -51,7 +45,7 @@ describe('Character Component Unit Tests', () => {
 
   describe('Edge Cases', () => {
     it('Should handle undefined character state gracefully', () => {
-      component.character = undefined as unknown as CharacterProperties;
+      component.character = undefined as unknown as CharacterModel;
       fixture.detectChanges();
       const subtitle = fixture.debugElement.query(By.css('.card-subtitle')).nativeElement;
       expect(subtitle.textContent.trim()).toBe('');

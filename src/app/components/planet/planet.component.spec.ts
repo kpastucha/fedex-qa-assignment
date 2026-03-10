@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { PlanetProperties } from '../../models/swapi.model';
+import { PlanetModel } from '../../models/planet.model';
 import { PlanetComponent } from './planet.component';
 
 describe('PlanetComponent Unit Tests', () => {
   let component: PlanetComponent;
   let fixture: ComponentFixture<PlanetComponent>;
-  const mockPlanet: PlanetProperties = {
+  const mockPlanet: PlanetModel = {
     name: 'Tatooine',
     population: '200000',
     climate: 'arid',
@@ -49,7 +49,7 @@ describe('PlanetComponent Unit Tests', () => {
 
   describe('Edge Cases', () => {
     it('Should handle undefined planet state gracefully', () => {
-      component.planet = undefined as unknown as PlanetProperties;
+      component.planet = undefined as unknown as PlanetModel;
       fixture.detectChanges();
       const subtitle = fixture.debugElement.query(By.css('.card-subtitle')).nativeElement;
       expect(subtitle.textContent.trim()).toBe('');
