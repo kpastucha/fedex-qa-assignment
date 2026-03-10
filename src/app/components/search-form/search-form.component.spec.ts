@@ -3,6 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import { SEARCH_TYPE_DATA } from '../../models/search-type.model';
 import { SearchFormComponent } from './search-form.component';
 
 describe('Search Form Component Tests', () => {
@@ -32,7 +33,7 @@ describe('Search Form Component Tests', () => {
       it('Should be able to select character radio via click', () => {
         getNativeElement('input[value="people"]').click();
         fixture.detectChanges();
-        expect(component.searchForm.get('searchType')?.value).toBe('people');
+        expect(component.searchForm.get('searchType')?.value).toBe(SEARCH_TYPE_DATA.PEOPLE);
       });
 
       it('Should be able to select planet radio via change event (keyboard/accessibility)', () => {
@@ -44,7 +45,7 @@ describe('Search Form Component Tests', () => {
       it('Should be able to select character radio via change event (keyboard/accessibility)', () => {
         getNativeElement('input[value="people"]').dispatchEvent(new Event('change'));
         fixture.detectChanges();
-        expect(component.searchForm.get('searchType')?.value).toBe('people');
+        expect(component.searchForm.get('searchType')?.value).toBe(SEARCH_TYPE_DATA.PEOPLE);
       });
     });
 
@@ -63,7 +64,7 @@ describe('Search Form Component Tests', () => {
 
       it('Should trigger search when clicking on submit button', () => {
         const spy = spyOn(router, 'navigate');
-        component.searchForm.patchValue({ searchType: 'people', query: 'Luke' });
+        component.searchForm.patchValue({ searchType: SEARCH_TYPE_DATA.PEOPLE, query: 'Luke' });
         fixture.detectChanges();
         getNativeElement('button[type="submit"]').click();
         expect(spy).toHaveBeenCalled();
@@ -71,10 +72,22 @@ describe('Search Form Component Tests', () => {
 
       it('Should trigger search when hitting enter in the query input', () => {
         const spy = spyOn(router, 'navigate');
-        component.searchForm.patchValue({ searchType: 'people', query: 'Luke' });
+        component.searchForm.patchValue({ searchType: SEARCH_TYPE_DATA.PEOPLE, query: 'Luke' });
         fixture.detectChanges();
         fixture.debugElement.query(By.css('form')).triggerEventHandler('submit', null);
         expect(spy).toHaveBeenCalled();
+      });
+
+      it('Should call router.navigate with empty query to allow clearing results', () => {
+        const spy = spyOn(router, 'navigate');
+        component.searchForm.patchValue({ searchType: SEARCH_TYPE_DATA.PEOPLE, query: '' });
+        component.search();
+        expect(spy).toHaveBeenCalledWith(
+          [],
+          jasmine.objectContaining({
+            queryParams: { searchType: SEARCH_TYPE_DATA.PEOPLE, query: '' }
+          })
+        );
       });
     });
   });
@@ -91,10 +104,10 @@ describe('Search Form Component Tests', () => {
       expect(input.attributes['type']).toBe('search');
     });
 
-    it('Should disable the submit button when the form is invalid', () => {
+    it('Should not disable the submit button when the query is empty', () => {
       component.searchForm.get('query')?.setValue('');
       fixture.detectChanges();
-      expect(getSubmitButton().disabled).toBeTrue();
+      expect(getSubmitButton().disabled).toBeFalse();
     });
 
     it('Should disable the submit button when isLoading is true', () => {
@@ -105,7 +118,7 @@ describe('Search Form Component Tests', () => {
     });
 
     it('Should enable the submit button when form is valid and not loading', () => {
-      component.searchForm.patchValue({ searchType: 'people', query: 'Luke' });
+      component.searchForm.patchValue({ searchType: SEARCH_TYPE_DATA.PEOPLE, query: 'Luke' });
       component.isLoading = false;
       fixture.detectChanges();
       expect(getSubmitButton().disabled).toBeFalse();
