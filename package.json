@@ -5,7 +5,7 @@
   "scripts": {
     "start": "ng serve",
     "build": "ng build",
-    "clean": "rimraf dist coverage .angular",
+    "clean": "rimraf dist coverage .angular playwright-report test-results",
     "test": "ng test",
     "test:coverage": "npm test -- --code-coverage",
     "test:coverage:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
