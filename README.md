@@ -26,7 +26,7 @@ Before running the project, please ensure you have the following installed:
 | -------------------------- | ------------------------------------------------------------------- |
 | `npm start`                | Starts the local dev server. Navigate to http://localhost:4200/     |
 | `npm run build`            | Builds the application for production in the dist/ folder           |
-| `npm run clean`            | Clean up dist, coverage and .angular directories                    |
+| `npm run clean`            | Reset workspace by removing build artifacts, tests reports          |
 | `npm test`                 | Runs Unit Tests using Jasmine and Karma                             |
 | `npm run test:coverage`    | Runs Unit Tests using Jasmine and Karma with code coverage          |
 | `npm run test:coverage:ci` | Runs Unit Tests using Jasmine and Karma with code coverage on CI/CD |
