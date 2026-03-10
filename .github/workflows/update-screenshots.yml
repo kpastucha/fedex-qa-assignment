@@ -22,7 +22,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npm run test:e2e:install
 
-      - name: Update Snapshots        
+      - name: Update Snapshots
         run: npm run test:e2e:update
 
       - name: Upload Updated Screenshots
